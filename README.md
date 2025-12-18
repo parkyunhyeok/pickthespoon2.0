@@ -361,7 +361,7 @@
      * ✅ LIVE 업로드 설정
      *********************************************************/
     const LIVE_ENABLED = true;
-    const LIVE_API_URL = "https://script.google.com/macros/s/AKfycbw8IjnGvTK3Ne4HuNaw7nopiVbExtLOgsStxrvH03qe5qC4afQzyrDtBjRIu96g0utO/exec";
+    const LIVE_API_URL = "https://script.google.com/macros/s/AKfycbwRcIc-LvIumOnpsmthxObSYgVgqq2obWS69VVPt9k2gBBfLHLHeQZeGB3r6rpuyVE/exec";
     const LIVE_TOKEN   = "PICKTHESPOON-LIVE-STREAM";
 
     /*********************************************************
