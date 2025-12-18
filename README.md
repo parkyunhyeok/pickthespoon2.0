@@ -1,3 +1,4 @@
+<!doctype html>
 <html lang="ko" translate="no">
 <head>
   <meta charset="utf-8" />
@@ -111,7 +112,6 @@
     }
     .small{ min-height: 120px; }
 
-    /* ✅ 중복 입력 시 textarea 빨간 강조 */
     textarea.dup{
       border-color: rgba(239,68,68,0.75);
       box-shadow: 0 0 0 3px rgba(239,68,68,0.18);
@@ -274,7 +274,6 @@
       .btnbar button{ font-size: 13px; padding: 10px 12px; }
     }
 
-    /* gap fallback */
     .checkline > * + * { margin-left: 10px; }
     .btnbar > * + * { margin-left: 10px; }
     .copyline > * + * { margin-left: 10px; }
@@ -359,12 +358,11 @@
     const $ = (id) => document.getElementById(id);
 
     /*********************************************************
-     * ✅ LIVE 업로드 설정 (여기만 채우면 됨)
+     * ✅ LIVE 업로드 설정
      *********************************************************/
-    const LIVE_ENABLED = true; // 업로드 기능 끄려면 false
-    const LIVE_API_URL = "https://script.google.com/macros/s/AKfycbzL71rMBzJvauXeFyFz2AuHXILUbQxO3IosQkMDySF3LB8LIXp3OGPc7r88Zw6zSdmh/exec"; 
-    // 예: https://script.google.com/macros/s/XXXX/exec
-    const LIVE_TOKEN   = "PICKTHESPOON-LIVE-STREAM"; // Code.gs의 SECRET과 동일하게
+    const LIVE_ENABLED = true;
+    const LIVE_API_URL = "https://script.google.com/macros/s/AKfycbzL71rMBzJvauXeFyFz2AuHXILUbQxO3IosQkMDySF3LB8LIXp3OGPc7r88Zw6zSdmh/exec";
+    const LIVE_TOKEN   = "PICKTHESPOON-LIVE-STREAM";
 
     /*********************************************************
      * 유틸
@@ -406,21 +404,36 @@
     }
 
     /*********************************************************
-     * ✅ LIVE 업로드 함수
+     * ✅ LIVE 업로드 함수 (CORS 회피 적용)
      *********************************************************/
     async function uploadLiveResult(payload){
       if (!LIVE_ENABLED) return;
-      if (!LIVE_API_URL || LIVE_API_URL.includes("PASTE_YOUR_SCRIPT_URL_HERE")) return;
-      if (!LIVE_TOKEN || LIVE_TOKEN.includes("CHANGE_ME_TO_A_RANDOM_STRING")) return;
+      if (!LIVE_API_URL) return;
 
-      try{
-        await fetch(LIVE_API_URL + "?token=" + encodeURIComponent(LIVE_TOKEN), {
+      const url = LIVE_API_URL + "?token=" + encodeURIComponent(LIVE_TOKEN);
+      const body = JSON.stringify(payload);
+
+      // ✅ 1순위: sendBeacon (CORS 영향 거의 없음, 모바일에서도 안정적)
+      if (navigator.sendBeacon) {
+        try {
+          const blob = new Blob([body], { type: "text/plain;charset=utf-8" });
+          const ok = navigator.sendBeacon(url, blob);
+          if (!ok) console.log("sendBeacon returned false");
+          return;
+        } catch (e) {
+          console.log("sendBeacon failed, fallback to fetch", e);
+        }
+      }
+
+      // ✅ 2순위: fetch no-cors + text/plain (프리플라이트 회피)
+      try {
+        await fetch(url, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body
         });
       } catch(e){
-        // 업로드 실패해도 팀 매칭은 정상 작동하게 조용히 실패 처리
         console.log("live upload failed", e);
       }
     }
@@ -587,12 +600,10 @@
     const toastEl = $("toast");
     const resultCardEl = $("resultCard");
 
-    // 실시간 카운터 + 중복 표시
     const nameCountEl = $("nameCount");
     const dupHintEl = $("dupHint");
     const btnMakeEl = $("btnMake");
 
-    // ✅ 중복 경고 표시 여부(중복 제거 시 문구 자동 제거)
     let dupWarningShown = false;
 
     function getNameStats(raw){
@@ -602,7 +613,7 @@
 
       const duplicates = [];
       for (const [nm, cnt] of map.entries()) {
-        if (cnt >= 2) duplicates.push(nm); // 완전 동일 문자열만 중복
+        if (cnt >= 2) duplicates.push(nm);
       }
       return { all, uniqCount: map.size, duplicates };
     }
@@ -630,7 +641,6 @@
 
         btnMakeEl.disabled = false;
 
-        // ✅ 중복 경고가 떠 있었던 경우에만 status를 지움(다른 결과 메시지 유지)
         if (dupWarningShown) {
           statusEl.textContent = "";
           statusEl.className = "status";
@@ -644,11 +654,7 @@
 
     let latestText = "";
 
-    /*********************************************************
-     * 이벤트
-     *********************************************************/
     $("btnMake").addEventListener("click", async () => {
-      // 안전: 클릭 시에도 중복 재확인
       const { duplicates } = getNameStats(namesEl.value);
       if (duplicates.length > 0) return;
 
@@ -679,7 +685,6 @@
       render(groups, rest);
       latestText = toText(groups, rest);
 
-      // 결과로 자동 스크롤
       requestAnimationFrame(() => {
         if (resultCardEl && typeof resultCardEl.scrollIntoView === "function") {
           resultCardEl.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -695,7 +700,6 @@
       summaryEl.textContent =
         `총 ${names.length}명 / 코트 ${courts}개${courtInfo} → 참여 ${playCount}명, 휴식 ${restCount}명`;
 
-      // ignored / warning / ok 메시지 처리
       if (ignored.length > 0) {
         statusEl.textContent = `참고: 휴식자 입력 중 참여자 목록에 없는 이름은 무시했어요 → ${ignored.join(", ")}`;
         statusEl.className = "status warn";
@@ -708,7 +712,6 @@
         statusEl.className = "status ok";
       }
 
-      // ✅ LIVE 업로드 payload 구성 + 업로드
       const livePayload = {
         updatedAt: new Date().toISOString(),
         summary: summaryEl.textContent,
@@ -723,6 +726,7 @@
         rest: rest,
         text: latestText
       };
+
       uploadLiveResult(livePayload);
     });
 
