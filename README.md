@@ -362,8 +362,9 @@
      * ✅ LIVE 업로드 설정 (여기만 채우면 됨)
      *********************************************************/
     const LIVE_ENABLED = true; // 업로드 기능 끄려면 false
-    const LIVE_API_URL = "PASTE_YOUR_SCRIPT_URL_HERE"; // 예: https://script.google.com/macros/s/XXXX/exec
-    const LIVE_TOKEN   = "CHANGE_ME_TO_A_RANDOM_STRING"; // Code.gs의 SECRET과 동일하게
+    const LIVE_API_URL = "https://script.google.com/macros/s/AKfycbzL71rMBzJvauXeFyFz2AuHXILUbQxO3IosQkMDySF3LB8LIXp3OGPc7r88Zw6zSdmh/exec"; 
+    // 예: https://script.google.com/macros/s/XXXX/exec
+    const LIVE_TOKEN   = "PICKTHESPOON-LIVE-STREAM"; // Code.gs의 SECRET과 동일하게
 
     /*********************************************************
      * 유틸
